@@ -140,10 +140,33 @@
           <button class="btn orange" id="img-check">Analizează imaginea</button>
           <p id="img-res"></p>
         </div>
-      </div>
-    </section>
+          <!-- END existing tiles -->
+        </div>
+      </section>
 
-    <section id="tool" class="card">
+      <!-- Reopen games section grid for new tiles -->
+      <section class="card">
+        <div class="section-title"><span class="pill">✨</span><h3 style="margin:0">Jocuri noi pentru echipe</h3></div>
+        <div class="games-grid" style="margin-top:14px">
+          <!-- Game 5 -->
+          <div class="game-tile card" id="tile5">
+            <h4 class="game-title">5. Emoții & Capcane 🧠</h4>
+            <p class="small"><strong>Cum joci:</strong> citește postarea și alege reacția corectă. <em>Tip:</em> dacă te face să te superi sau să te sperii, respiră, verifică sursa, apoi decide.</p>
+            <div id="g5" class="choices"></div>
+            <p><strong>Scor:</strong> <span id="g5-score">0</span></p>
+          </div>
+
+          <!-- Game 6 -->
+          <div class="game-tile card" id="tile6">
+            <h4 class="game-title">6. Memory Media 🧩</h4>
+            <p class="small"><strong>Cum joci:</strong> potrivește perechile (concept + explicație). Gândește ca un detectiv media!</p>
+            <div id="g6" style="display:grid;grid-template-columns:repeat(4,minmax(60px,1fr));gap:10px"></div>
+            <p><strong>Perechi găsite:</strong> <span id="g6-found">0</span>/4</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="tool" class="card">
       <div class="section-title"><span class="pill">🛠️</span><h3 style="margin:0">Tool intern: Generator & Analyzer de ştiri</h3></div>
       <p class="small">Creează un titlu și analizează-l automat: cuvinte senzationale, semne de exclamare sau lipsa sursei. Vezi scorul tău de risc!</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
@@ -176,194 +199,42 @@
   </footer>
 
   <script>
-    // Rulează JS doar după ce DOM-ul e gata
-    document.addEventListener('DOMContentLoaded', () => {
-    // Footer year
-    document.getElementById('year').textContent = new Date().getFullYear();
+// ========== SAFE BOOTSTRAP ==========
+(function(){
+  const boot = () => {
+    try{
+      const $ = (s)=>document.querySelector(s);
+      const $$ = (s)=>Array.from(document.querySelectorAll(s));
+      const shuffle = (a)=>a.sort(()=>Math.random()-.5);
+      const confetti=(target)=>{ if(!target) return; const r=target.getBoundingClientRect(); for(let i=0;i<12;i++){const s=document.createElement('span'); s.style.position='fixed'; s.style.left=(r.left+r.width/2)+'px'; s.style.top=(r.top)+'px'; s.style.width=s.style.height=(6+Math.random()*6)+'px'; s.style.background=['#16a34a','#22d3ee','#f59e0b','#06b6d4'][Math.floor(Math.random()*4)]; s.style.borderRadius='2px'; s.style.zIndex=9999; document.body.appendChild(s); const dx=(Math.random()*2-1)*140, dy=80+Math.random()*140, rot=Math.random()*720; s.animate([{transform:'translate(0,0) rotate(0deg)',opacity:1},{transform:'translate('+dx+'px,'+dy+'px) rotate('+rot+'deg)',opacity:0}],{duration:900+Math.random()*500,easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish=()=>s.remove(); } };
 
-    // ===== GAME 1: Spot the Fake Headline =====
-    const g1Data = [
-      [
-        { t: 'Profesorii primesc salarii de 10.000€!', fake: true },
-        { t: 'Elevii plantează 200 de copaci în curtea școlii', fake: false },
-        { t: 'Echipa robotică a câștigat etapa regională', fake: false }
-      ],
-      [
-        { t: 'Telefonul citește gânduri dacă îl încarci noaptea!', fake: true },
-        { t: 'Biblioteca oferă abonamente gratuite elevilor', fake: false },
-        { t: 'Observatorul anunță ploaie de meteori în weekend', fake: false }
-      ],
-      [
-        { t: 'Apă care vindecă orice boală – disponibilă la chioșc', fake: true },
-        { t: 'Școala organizează concurs județean de lectură', fake: false },
-        { t: 'Liceenii lansează un podcast despre învățare', fake: false }
-      ]
-    ];
-    const g1El = document.getElementById('g1');
-    const g1ScoreEl = document.getElementById('g1-score');
-    const g1Next = document.getElementById('g1-next');
-    let g1Round = 0, g1Score = 0, g1Locked = false;
-    function shuffle(a){ return a.sort(()=>Math.random()-.5); }
-    function renderG1(){
-      g1Locked = false;
-      g1El.innerHTML = '';
-      const set = g1Data[g1Round].slice();
-      shuffle(set).forEach(item=>{
-        const d = document.createElement('div');
-        d.className = 'choice';
-        d.textContent = item.t;
-        d.addEventListener('click', ()=>{
-          if (g1Locked) return; g1Locked = true;
-          const correct = !!item.fake;
-          d.style.border = '3px solid ' + (correct ? '#16a34a' : '#ef4444');
-          if (correct){ g1Score++; g1ScoreEl.textContent = g1Score; confetti(d); }
-        });
-        g1El.appendChild(d);
-      });
-    }
-    g1Next.addEventListener('click', ()=>{ g1Round = (g1Round+1)%g1Data.length; renderG1(); });
-    renderG1();
+      // Footer year
+      const yearEl=$('#year'); if(yearEl) yearEl.textContent=new Date().getFullYear();
 
-    // ===== GAME 2: Fact vs Opinion (Drag & Drop) =====
-    const pool = document.getElementById('pool');
-    const colFact = document.getElementById('col-fact');
-    const colOp = document.getElementById('col-op');
-    const items2 = [
-      'Apa îngheață la 0°C.',
-      'România este în Europa.',
-      'Apa este H2O.',
-      'TikTok este cea mai distractivă aplicație.',
-      'Cățelușii sunt mai drăguți decât pisicile.',
-      'Toți influencerii spun adevărul.'
-    ];
-    function buildChip(text){
-      const el = document.createElement('div');
-      el.className = 'choice';
-      el.textContent = text;
-      el.draggable = true;
-      el.addEventListener('dragstart', ()=> el.classList.add('dragging'));
-      el.addEventListener('dragend', ()=> el.classList.remove('dragging'));
-      return el;
-    }
-    function initPool(){ pool.innerHTML=''; items2.forEach(t=> pool.appendChild(buildChip(t))); }
-    [pool, colFact, colOp].forEach(zone=>{
-      zone.addEventListener('dragover', e=> e.preventDefault());
-      zone.addEventListener('drop', ()=>{
-        const chip = document.querySelector('.dragging');
-        if (chip) zone.appendChild(chip);
-      });
-    });
-    initPool();
-    document.getElementById('check2').addEventListener('click', ()=>{
-      const factsText = ['Apa îngheață la 0°C.','România este în Europa.','Apa este H2O.'];
-      const chosenFacts = [...colFact.querySelectorAll('.choice')].map(n=>n.textContent);
-      let points = 0; factsText.forEach(f=>{ if (chosenFacts.includes(f)) points++; });
-      document.getElementById('result2').textContent = `Puncte: ${points} / 3`;
-    });
+      // ===== GAME 1 =====
+      (function(){ const box=$('#g1'), next=$('#g1-next'), scoreEl=$('#g1-score'); if(!box||!next||!scoreEl) return; const data=[[{t:'Profesorii primesc salarii de 10.000€!',fake:true},{t:'Elevii plantează 200 de copaci',fake:false},{t:'Echipa robotică a câștigat etapa',fake:false}], [{t:'Telefonul îți citește gândurile!',fake:true},{t:'Biblioteca oferă abonamente gratuite',fake:false},{t:'Muzeul are intrare liberă duminică',fake:false}], [{t:'Apă care vindecă orice boală!!!',fake:true},{t:'Școala organizează concurs județean',fake:false},{t:'Elevii lansează un podcast',fake:false}]]; let round=0,score=0,locked=false; function render(){ locked=false; box.innerHTML=''; shuffle(data[round].slice()).forEach(item=>{ const d=document.createElement('div'); d.className='choice'; d.textContent=item.t; d.onclick=()=>{ if(locked) return; locked=true; const ok=!!item.fake; d.style.border='3px solid '+(ok?'#16a34a':'#ef4444'); if(ok){ score++; scoreEl.textContent=String(score); confetti(d);} }; box.appendChild(d); }); } next.onclick=()=>{ round=(round+1)%data.length; render(); }; render(); })();
 
-    // ===== GAME 3: Source Detective =====
-    const sData = [
-      { t:'Site oficial al Ministerului Educației', type:'Sigură' },
-      { t:'Blog anonim: „Adevărul ascuns”', type:'Falsă' },
-      { t:'Pagină socială fără autor clar', type:'Incertă' }
-    ];
-    const g3 = document.getElementById('g3');
-    const g3ScoreEl = document.getElementById('g3-score');
-    let g3Score = 0;
-    function renderG3(){
-      g3.innerHTML='';
-      sData.forEach(row=>{
-        const wrap = document.createElement('div');
-        wrap.className = 'choice';
-        const t = document.createElement('div'); t.textContent = row.t; wrap.appendChild(t);
-        const btns = document.createElement('div'); btns.style.display='flex'; btns.style.gap='8px'; btns.style.marginTop='8px';
-        ['Sigură','Incertă','Falsă'].forEach(opt=>{
-          const b = document.createElement('button'); b.className='btn blue'; b.style.padding='8px 12px'; b.textContent=opt;
-          b.addEventListener('click', ()=>{
-            if (opt === row.type){ g3Score++; b.style.background = '#16a34a'; }
-            else { b.style.background = '#ef4444'; }
-            g3ScoreEl.textContent = 'Scor: ' + g3Score;
-          });
-          btns.appendChild(b);
-        });
-        wrap.appendChild(btns); g3.appendChild(wrap);
-      });
-    }
-    renderG3();
+      // ===== GAME 2 (Drag&Drop) =====
+      (function(){ const pool=$('#pool'), f=$('#col-fact'), o=$('#col-op'), btn=$('#check2'), out=$('#result2'); if(!pool||!f||!o||!btn||!out) return; const items=['Apa îngheață la 0°C.','România este în Europa.','Apa este H2O.','TikTok este cea mai distractivă aplicație.','Cățelușii sunt mai drăguți decât pisicile.','Toți influencerii spun adevărul.']; function chip(t){ const el=document.createElement('div'); el.className='choice'; el.draggable=true; el.textContent=t; el.addEventListener('dragstart',()=>el.classList.add('dragging')); el.addEventListener('dragend',()=>el.classList.remove('dragging')); return el; } function init(){ pool.innerHTML=''; items.forEach(t=>pool.appendChild(chip(t))); } [pool,f,o].forEach(z=>{ z.addEventListener('dragover',e=>e.preventDefault()); z.addEventListener('drop',()=>{ const c=document.querySelector('.dragging'); if(c) z.appendChild(c); }); }); init(); btn.onclick=()=>{ const correct=['Apa îngheață la 0°C.','România este în Europa.','Apa este H2O.']; const chosen=[...f.querySelectorAll('.choice')].map(n=>n.textContent); const pts=correct.reduce((a,x)=>a+(chosen.includes(x)?1:0),0); out.textContent=`Puncte: ${pts} / 3`; }; })();
 
-    // ===== GAME 4: Image Detective =====
-    const imgrow = document.getElementById('imgrow');
-    const imgs = [
-      { src:'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=700&q=60', fake:false },
-      { src:'https://images.unsplash.com/photo-1503264116251-35a269479413?w=700&q=60', fake:true }
-    ];
-    imgs.forEach(im=>{
-      const el = document.createElement('img');
-      el.src = im.src; el.alt = 'imagine'; el.dataset.fake = im.fake;
-      el.addEventListener('click', ()=> el.classList.toggle('selected'));
-      imgrow.appendChild(el);
-    });
-    document.getElementById('img-check').addEventListener('click', ()=>{
-      const selected = [...imgrow.querySelectorAll('img')].map(i=> i.classList.contains('selected'));
-      // Scor: considerăm corect dacă selectezi doar imaginile "fake"
-      let pts = 0; [...imgrow.querySelectorAll('img')].forEach(img=>{
-        const sel = img.classList.contains('selected');
-        const isFake = img.dataset.fake === 'true';
-        if ((sel && isFake) || (!sel && !isFake)) pts++;
-      });
-      document.getElementById('img-res').textContent = `Puncte: ${pts} / ${imgs.length}`;
-    });
+      // ===== GAME 3 =====
+      (function(){ const box=$('#g3'), scoreEl=$('#g3-score'); if(!box||!scoreEl) return; let score=0; const rows=[{t:'Site oficial al Ministerului Educației',type:'Sigură'},{t:'Blog anonim: „Adevărul ascuns”',type:'Falsă'},{t:'Pagină socială fără autor clar',type:'Incertă'}]; box.innerHTML=''; rows.forEach(row=>{ const wrap=document.createElement('div'); wrap.className='choice'; const t=document.createElement('div'); t.textContent=row.t; const btns=document.createElement('div'); btns.style.display='flex'; btns.style.gap='8px'; ['Sigură','Incertă','Falsă'].forEach(opt=>{ const b=document.createElement('button'); b.className='btn blue'; b.style.padding='8px 12px'; b.textContent=opt; b.onclick=()=>{ if(opt===row.type){ score++; b.style.background='#16a34a'; confetti(b);} else b.style.background='#ef4444'; scoreEl.textContent=String(score); }; btns.appendChild(b); }); wrap.appendChild(t); wrap.appendChild(btns); box.appendChild(wrap); }); })();
 
-    // ===== TOOL: Generator & Analyzer =====
-    const genBtn = document.getElementById('gen');
-    const anBtn = document.getElementById('analyze');
-    const gInput = document.getElementById('ginput');
-    const genOut = document.getElementById('gen-output');
-    const aOut = document.getElementById('analysis-output');
+      // ===== GAME 4 =====
+      (function(){ const row=$('#imgrow'), btn=$('#img-check'), out=$('#img-res'); if(!row||!btn||!out) return; const imgs=[{src:'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=700&q=60',fake:false},{src:'https://images.unsplash.com/photo-1503264116251-35a269479413?w=700&q=60',fake:true}]; row.innerHTML=''; imgs.forEach(im=>{ const el=document.createElement('img'); el.src=im.src; el.alt='imagine'; el.dataset.fake=String(im.fake); el.onclick=()=>el.classList.toggle('selected'); row.appendChild(el); }); btn.onclick=()=>{ let pts=0; $$('#imgrow img').forEach(img=>{ const sel=img.classList.contains('selected'); const isFake=img.dataset.fake==='true'; if((sel&&isFake)||(!sel&&!isFake)) pts++; }); out.textContent=`Puncte: ${pts} / ${imgs.length}`; }; })();
 
-    function simpleGenerate(txt){
-      const seeds = ['Uimitor!','Șocant:','Top secret:','Atenție!','Descoperire:'];
-      return seeds[Math.floor(Math.random()*seeds.length)] + ' ' + txt + ' — Află mai mult!';
-    }
-    genBtn.addEventListener('click', ()=>{
-      const txt = gInput.value.trim() || 'O noutate despre tehnologie';
-      genOut.textContent = simpleGenerate(txt);
-    });
+      // ===== GAME 5 =====
+      (function(){ const box=$('#g5'), scoreEl=$('#g5-score'); if(!box||!scoreEl) return; let score=0; const posts=[{t:'ȘOCANT! Băutura X te vindecă în 24h!!!', ok:'Verifică sursa & nu distribui', bad:['Distribuie imediat!','Cumpără acum fără să verifici']},{t:'Ministerul publică un ghid nou pentru elevi.', ok:'Citește din sursa oficială', bad:['Ignoră sursa, doar titlul e de ajuns','Spune tuturor că e fals']},{t:'Prietenul unui prieten a spus că mâine nu e școală.', ok:'Caută anunțul pe site-ul școlii', bad:['Crede pe cuvânt și nu mai mergi','Scrie o postare furioasă']}]; function render(){ box.innerHTML=''; posts.forEach(p=>{ const card=document.createElement('div'); card.className='card'; card.style.padding='12px'; card.style.background='#fffdf7'; const txt=document.createElement('div'); txt.textContent=p.t; txt.style.fontWeight='700'; txt.style.marginBottom='8px'; const opts=document.createElement('div'); opts.style.display='grid'; opts.style.gridTemplateColumns='1fr 1fr 1fr'; opts.style.gap='8px'; const all=[p.ok,...p.bad]; shuffle(all).forEach(opt=>{ const b=document.createElement('button'); b.className='btn orange'; b.style.padding='10px 12px'; b.textContent=opt; b.onclick=()=>{ if(opt===p.ok){ score++; b.style.background='#16a34a'; confetti(b);} else b.style.background='#ef4444'; scoreEl.textContent=String(score); }; opts.appendChild(b); }); card.appendChild(txt); card.appendChild(opts); box.appendChild(card); }); } render(); })();
 
-    function analyzeHeadline(t){
-      const checks = [];
-      const low = t.toLowerCase();
-      const sensational = ['uimitor','șocant','secret','dezvăluit','miracol','incredibil'];
-      sensational.forEach(w=>{ if (low.includes(w)) checks.push('Cuvânt senzațional: "'+w+'"'); });
-      if ((t.match(/[!?]{2,}/g) || []).length > 0) checks.push('Prea multe semne de exclamare');
-      if (!/(minister|site|presă|publicat|ministerul|autor)/i.test(low) && t.length < 60) checks.push('Titlu scurt fără indiciu/sursă');
-      const score = Math.max(10, 100 - checks.length*25);
-      return { score, notes: checks.length? checks : ['Titlu pare rezonabil'] };
-    }
-    anBtn.addEventListener('click', ()=>{
-      const text = (gInput.value.trim() || genOut.textContent || '').trim();
-      if (!text){ aOut.textContent = 'Scrie un text sau generează un titlu.'; return; }
-      const res = analyzeHeadline(text);
-      aOut.innerHTML = 'Scor de risc: <strong>'+res.score+'</strong>' + res.notes.map(n=>'
-<div>• '+n+'</div>').join('');
-    });
+      // ===== GAME 6 (Memory) =====
+      (function(){ const grid=$('#g6'), foundEl=$('#g6-found'); if(!grid||!foundEl) return; const pairs=[['Clickbait','Titlu menit să atragă clickuri, nu să informeze corect'],['Sursă oficială','Instituție cunoscută, autor & contact clare'],['Dezinformare','Informație falsă distribuită intenționat'],['Căutare inversă','Metodă de verificare a imaginilor pe net']]; const deck=[]; pairs.forEach((p,i)=>{ deck.push({id:i,type:'term',text:p[0]}); deck.push({id:i,type:'def',text:p[1]}); }); let first=null,second=null,lock=false,found=0; foundEl.textContent='0'; grid.innerHTML=''; shuffle(deck).forEach(item=>{ const c=document.createElement('button'); c.className='btn blue'; c.style.minHeight='64px'; c.style.whiteSpace='normal'; c.textContent='?'; c.dataset.id=item.id; c.dataset.type=item.type; c.dataset.text=item.text; c.onclick=()=>{ if(lock||c.classList.contains('ok')) return; c.textContent=c.dataset.text; c.style.filter='brightness(1.05)'; if(!first){ first=c; return; } if(!second){ second=c; lock=true; setTimeout(()=>{ if(first.dataset.id===second.dataset.id && first.dataset.type!==second.dataset.type){ first.classList.add('ok'); second.classList.add('ok'); first.style.background='#16a34a'; second.style.background='#16a34a'; found++; foundEl.textContent=String(found); } else { first.textContent='?'; second.textContent='?'; first.style.filter=''; second.style.filter=''; } first=null; second=null; lock=false; },600); } }; grid.appendChild(c); }); })();
 
-    // ===== Small confetti effect =====
-    function confetti(target){
-      const rect = target.getBoundingClientRect();
-      for (let i=0;i<16;i++){
-        const s=document.createElement('span');
-        s.style.position='fixed'; s.style.left=(rect.left+rect.width/2)+'px'; s.style.top=(rect.top)+'px';
-        s.style.width=s.style.height=(6+Math.random()*6)+'px';
-        s.style.background=['#16a34a','#22d3ee','#f59e0b','#06b6d4'][Math.floor(Math.random()*4)];
-        s.style.borderRadius='2px'; s.style.zIndex=9999;
-        document.body.appendChild(s);
-        const dx=(Math.random()*2-1)*140, dy=80+Math.random()*140, rot=Math.random()*720;
-        s.animate([{transform:'translate(0,0) rotate(0deg)',opacity:1},{transform:'translate('+dx+'px,'+dy+'px) rotate('+rot+'deg)',opacity:0}],{duration:1000+Math.random()*600,easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish=()=>s.remove();
-      }
-    }
-        // end DOMContentLoaded
-    });
-  </script>
+      // ===== TOOL =====
+      (function(){ const gen=$('#gen'), analyze=$('#analyze'), ginput=$('#ginput'), out=$('#gen-output'), aout=$('#analysis-output'); if(!gen||!analyze||!ginput||!out||!aout) return; const seeds=['Uimitor!','Șocant:','Top secret:','Atenție!','Descoperire:']; const genFn=(txt)=>seeds[Math.floor(Math.random()*seeds.length)]+' '+txt+' — Află mai mult!'; gen.onclick=()=>{ const txt=(ginput.value||'O noutate despre tehnologie').trim(); out.textContent=genFn(txt); }; const analyzeFn=(t)=>{ const checks=[]; const low=t.toLowerCase(); ['uimitor','șocant','secret','dezvăluit','miracol','incredibil'].forEach(w=>{ if(low.includes(w)) checks.push('Cuvânt senzațional: „'+w+'”'); }); if((t.match(/[!?]{2,}/g)||[]).length>0) checks.push('Prea multe semne de exclamare'); if(!/(minister|site|presă|publicat|ministerul|autor)/i.test(low) && t.length<60) checks.push('Titlu scurt fără indiciu/sursă'); const score=Math.max(10,100-checks.length*25); return {score,notes:checks.length?checks:['Titlu pare rezonabil']}; }; analyze.onclick=()=>{ const text=(ginput.value||out.textContent||'').trim(); if(!text){ aout.textContent='Scrie un text sau generează un titlu.'; return; } const r=analyzeFn(text); aout.innerHTML='Scor de risc: <strong>'+r.score+'</strong>'+r.notes.map(n=>'<div>• '+n+'</div>').join(''); }; })();
+
+    }catch(err){ console.error('Init error:', err); const warn=document.createElement('div'); warn.style.position='fixed'; warn.style.right='12px'; warn.style.bottom='12px'; warn.style.background='#fee2e2'; warn.style.color='#991b1b'; warn.style.padding='10px 12px'; warn.style.borderRadius='10px'; warn.style.boxShadow='0 10px 30px rgba(0,0,0,.12)'; warn.textContent='A apărut o eroare la inițializarea jocurilor. Reîncarcă pagina.'; document.body.appendChild(warn);} };
+  if(document.readyState==='complete'||document.readyState==='interactive'){ setTimeout(boot,0); } else { document.addEventListener('DOMContentLoaded', boot); }
+})();
+</script>
 </body>
 </html>
