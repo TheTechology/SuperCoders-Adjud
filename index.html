@@ -4,93 +4,138 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mic Detectiv — Eroul Adevărului 🛡️</title>
-  <meta name="description" content="Jocuri educative despre știri false, gândire critică și verificarea surselor — pentru copii (clasa a V-a).">
+  <meta name="description" content="Platformă interactivă pentru copii: învățare despre știri false prin jocuri, exerciții și un generator/analyzer intern de știri." />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#f3fff6;--card:#fff;--accent:#16a34a;--accent2:#06b6d4;--warm:#f59e0b;--muted:#475569;--radius:18px;--shadow:0 14px 40px rgba(6,95,70,.08)}
+    :root{--bg:#f3fff6; --card:#ffffff; --accent:#16a34a; --accent-2:#06b6d4; --warm:#f59e0b; --muted:#475569; --radius:18px; --shadow:0 14px 40px rgba(6,95,70,.08)}
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{margin:0;font-family:"Nunito",system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#f6fffa 0%,#eefdf9 100%);color:#07332f}
-    header{padding:56px 20px 24px;text-align:center}
+    header{padding:48px 20px;text-align:center}
     h1{font-family:"Baloo 2",cursive;font-size:clamp(28px,5vw,56px);margin:0;color:var(--accent)}
     p.lead{max-width:900px;margin:12px auto 0;color:var(--muted);font-size:1.05rem}
-    .container{max-width:1100px;margin:24px auto;padding:0 20px}
+    .container{max-width:1100px;margin:36px auto;padding:0 20px}
+    .grid{display:block}
+
     .card{background:var(--card);border-radius:var(--radius);padding:18px;border:1px solid rgba(6,95,70,.06);box-shadow:var(--shadow)}
     .section-title{display:flex;align-items:center;gap:12px}
     .pill{padding:8px 12px;border-radius:999px;background:linear-gradient(90deg,rgba(6,182,212,.12),rgba(22,163,74,.08));font-weight:700;color:#052b23}
-    .btn{display:inline-block;padding:14px 22px;border-radius:14px;border:0;font-weight:900;letter-spacing:.2px;color:#fff;cursor:pointer;box-shadow:0 10px 0 rgba(0,0,0,.08),0 14px 28px rgba(6,95,70,.10);transition:transform .12s ease, box-shadow .12s ease}
-    .btn:hover{transform:translateY(-2px)} .btn:active{transform:translateY(2px)}
-    .green{background:linear-gradient(180deg,var(--accent),#0f7f3a)}
-    .blue{background:linear-gradient(180deg,var(--accent2),#0790a8)}
-    .orange{background:linear-gradient(180deg,var(--warm),#c46b06)}
-    .small{font-size:.95rem;color:var(--muted)}
-    .games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:14px}
-    .game-tile{padding:18px;border-radius:14px;background:linear-gradient(180deg,#fff,#f7fffb);border:1px solid rgba(6,95,70,.05)}
+
+    .btn{display:inline-block;padding:14px 22px;border-radius:14px;border:0;font-weight:900;letter-spacing:.2px;color:white;cursor:pointer;box-shadow:0 10px 0 rgba(0,0,0,.08),0 14px 28px rgba(6,95,70,.10);transition:transform .12s ease, box-shadow .12s ease}
+    .btn.green{background:linear-gradient(180deg,var(--accent),#0f7f3a)}
+    .btn.blue{background:linear-gradient(180deg,var(--accent-2),#0790a8)}
+    .btn.orange{background:linear-gradient(180deg,var(--warm),#c46b06)}
+    .btn:hover{transform:translateY(-2px)}
+    .btn:active{transform:translateY(2px)}
+
+    .games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:20px}
+    .game-tile{padding:18px;border-radius:14px;background:linear-gradient(180deg,#ffffff,#f7fffb);border:1px solid rgba(6,95,70,.05)}
     .game-title{font-family:"Baloo 2";font-size:1.1rem;margin:0 0 8px}
+    .small{font-size:.95rem;color:var(--muted)}
+
     .choices{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-    .choice{padding:12px;border-radius:12px;border:2px dashed rgba(6,95,70,.12);background:#fff;cursor:pointer;transition:all .15s}
+    .choice{padding:12px;border-radius:12px;border:2px dashed rgba(6,95,70,.06);background:#fff;cursor:pointer;transition:all .15s}
     .choice:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(6,95,70,.06)}
+
     .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .drop{min-height:120px;border:2px dashed rgba(6,95,70,.18);padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#f8fff8)}
+    .drop{min-height:120px;border:2px dashed rgba(6,95,70,.08);padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#f8fff8)}
+
     .imgrow{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-    .imgrow img{width:100%;max-width:260px;border-radius:12px;border:6px solid rgba(6,95,70,.12);cursor:pointer;transition:transform .15s,border-color .15s}
+    .imgrow img{width:100%;max-width:260px;border-radius:12px;border:6px solid rgba(6,95,70,.04);cursor:pointer;transition:transform .15s,border-color .15s}
     .imgrow img.selected{border-color:#16a34a;transform:scale(1.02)}
+
     footer{text-align:center;padding:28px;color:var(--muted)}
-    /* safety for very small screens */
-    @media(max-width:520px){.container{padding:0 14px}}
+      .top-nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid rgba(6,95,70,.08)}
+    .top-nav .wrap{max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:center;padding:10px 16px}
   </style>
 </head>
 <body>
+  <div class="top-nav"><div class="wrap">
+      <a href="#games" class="btn blue">🎮 Jocuri</a>
+      <a href="#tool" class="btn green">🛠️ Tool anti‑fake</a>
+  </div></div>
+
   <header>
     <h1>Mic Detectiv — Eroul Adevărului 🛡️</h1>
-    <p class="lead">Învață cum recunoști știrile false, cum verifici sursele și cum folosești gândirea critică — prin jocuri interactive și un <strong>Tool anti-fake</strong>.</p>
+    <p class="lead">Un site educațional pentru copii (clasa a V‑a). Aici înveți cum să recunoști știrile false, să verifici surse și să folosești gândirea critică — prin jocuri interactive și un <strong>Tool intern de generare / analiză știri</strong>.</p>
   </header>
 
   <main class="container" id="games">
-    <!-- Intro -->
-    <section class="card">
-      <div class="section-title"><span class="pill">🎯</span><h3 style="margin:0">Ce înveți aici</h3></div>
-      <p class="small">Cum verifici o știre, cum identifici titlurile senzaționale, ce e o sursă de încredere și de ce e important să te gândești înainte de share. Perfect pentru lucru pe echipe.</p>
+    <!-- Secțiune: Ce este FAPT și ce este OPINIE -->
+    <section class="card" id="fapt-opinie">
+      <div class="section-title"><span class="pill">📘</span><h3 style="margin:0">Fapt vs. Opinie — pe scurt și clar</h3></div>
+      <div class="small" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+        <div class="card" style="background:#f6fffa">
+          <h4 style="margin-top:0" class="game-title">Ce este un <strong>FAPT</strong>?</h4>
+          <ul>
+            <li>Este o afirmație care poate fi <strong>verificată</strong> și demonstrată ca adevărată sau falsă.</li>
+            <li>De obicei are <strong>date, măsurători, surse</strong> (ex.: „Apa îngheață la 0°C”).</li>
+            <li>Exemple: „România este în Europa.”, „Apa este H<sub>2</sub>O.”</li>
+          </ul>
+        </div>
+        <div class="card" style="background:#fff8f2">
+          <h4 style="margin-top:0" class="game-title">Ce este o <strong>OPINIE</strong>?</h4>
+          <ul>
+            <li>Este o <strong>părere</strong> sau preferință personală. Nu poate fi dovedită ca adevărată sau falsă pentru toată lumea.</li>
+            <li>Se bazează pe <strong>gusturi, emoții</strong> sau experiențe.</li>
+            <li>Exemple: „TikTok este cea mai distractivă aplicație.”, „Pisicile sunt mai drăguțe decât câinii.”</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h4 class="game-title" style="margin-top:0">Regula de aur 🥇</h4>
+        <p class="small">Când nu ești sigur dacă un enunț este <strong>fapt</strong> sau <strong>opinie</strong>, întreabă-te: „Pot demonstra asta folosind o <em>sursă de încredere</em> sau mă bazez pe păreri?”</p>
+      </div>
     </section>
 
-    <!-- Jocuri -->
+
+  <main class="container" id="games">
+    <section class="card">
+      <div class="section-title"><span class="pill">🎯</span><h3 style="margin:0">Ce înveți aici</h3></div>
+      <p class="small">Pe scurt: cum verifici o știre, cum identifici titlurile senzationale, ce înseamnă o sursă de încredere și de ce e important să te gândești înainte să dai share. Materialul are activități practice pentru echipe, jocuri și explicații simple pentru elevi.</p>
+    </section>
+
     <section class="card">
       <div class="section-title"><span class="pill">🕹️</span><h3 style="margin:0">Jocuri interactive</h3></div>
       <p class="small" style="margin-top:8px">Joacă-te și învață — feedback vizual, punctaj, discuții rapide după fiecare joc.</p>
 
+      <!-- Regulile generale pentru copii -->
+      <div class="card" style="margin:10px 0;background:linear-gradient(180deg,#ffffff,#f2fff9)">
+        <h4 class="game-title" style="margin-top:0">Reguli generale de joc 🎲</h4>
+        <ol class="small" style="margin:0 0 6px 18px">
+          <li>Lucrați <strong>în echipă</strong>: discutați 30–60 secunde înainte de a alege.</li>
+          <li>Citiți cu atenție: căutați <strong>cuvinte senzaționale</strong>, <strong>exagerări</strong>, <strong>lipsa sursei</strong>.</li>
+          <li>Nu vă grăbiți să dați „share”. Mai întâi <strong>verificați</strong> și <strong>întrebați</strong> un adult.</li>
+          <li>Greșeala e ok! Aflați „de ce” ca să deveniți mai buni detectivi.</li>
+        </ol>
+      </div>
+
       <div class="games-grid">
-        <!-- Game 1 -->
         <div class="game-tile card" id="tile1">
           <h4 class="game-title">1. Spot the Fake Headline</h4>
+          <p class="small"><strong>Cum joci:</strong> citește 3 titluri și apasă pe cel care pare <em>mai puțin credibil</em>. Discută cu echipa ce indicii te-au ajutat (ex.: cuvinte „WOW”, promisiuni ireale, lipsa sursei).</p>
           <div id="g1" class="choices"></div>
           <button class="btn blue" id="g1-next">Următoarea</button>
           <p><strong>Scor:</strong> <span id="g1-score">0</span></p>
         </div>
 
-        <!-- Game 2 -->
         <div class="game-tile card" id="tile2">
           <h4 class="game-title">2. Fapt sau Opiniune</h4>
-          <div class="dgrid">
-            <div id="pool" class="drop"></div>
-            <div>
-              <div id="col-fact" class="drop">📘 Fapte</div>
-              <div id="col-op" class="drop">💬 Opinii</div>
-            </div>
-          </div>
+          <p class="small"><strong>Cum joci:</strong> trage fiecare enunț în coloana corectă. <em>Fapt</em> = se poate verifica. <em>Opinie</em> = părere personală. La final, apasă <strong>Verifică</strong> ca să vezi punctajul.</p>
+          <div class="dgrid"><div id="pool" class="drop"></div><div><div id="col-fact" class="drop">📘 Fapte</div><div id="col-op" class="drop">💬 Opinii</div></div></div>
           <button class="btn green" id="check2">Verifică</button>
           <p id="result2"></p>
         </div>
 
-        <!-- Game 3 -->
         <div class="game-tile card" id="tile3">
           <h4 class="game-title">3. Source Detective</h4>
+          <p class="small"><strong>Cum joci:</strong> pentru fiecare sursă alege <span style="color:#16a34a">Sigură</span>, <span style="color:#f59e0b">Incertă</span> sau <span style="color:#dc2626">Falsă</span>. <em>Tip:</em> caută autorul, contactul și domeniul site‑ului.</p>
           <div id="g3" class="choices"></div>
           <p><strong>Scor:</strong> <span id="g3-score">0</span></p>
         </div>
 
-        <!-- Game 4 -->
         <div class="game-tile card" id="tile4">
           <h4 class="game-title">4. Image Detective</h4>
+          <p class="small"><strong>Cum joci:</strong> selectează imaginile care par <em>editate</em> (borderul devine verde). Apoi apasă <strong>Analizează</strong> ca să vezi scorul. Uită‑te la umbre, reflexii, proporții.</p>
           <div class="imgrow" id="imgrow"></div>
           <button class="btn orange" id="img-check">Analizează imaginea</button>
           <p id="img-res"></p>
@@ -98,12 +143,11 @@
       </div>
     </section>
 
-    <!-- Tool -->
     <section id="tool" class="card">
-      <div class="section-title"><span class="pill">🛠️</span><h3 style="margin:0">Tool: Generator & Analyzer de știri</h3></div>
-      <p class="small">Generează un titlu „wow”, apoi analizează-l automat: cuvinte senzaționale, semne de exclamare, lipsa indiciilor. Vezi scorul de risc.</p>
+      <div class="section-title"><span class="pill">🛠️</span><h3 style="margin:0">Tool intern: Generator & Analyzer de ştiri</h3></div>
+      <p class="small">Creează un titlu și analizează-l automat: cuvinte senzationale, semne de exclamare sau lipsa sursei. Vezi scorul tău de risc!</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <input id="ginput" placeholder="Scrie o propoziție sau titlu..." style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(6,95,70,.12)" />
+        <input id="ginput" placeholder="Scrie o propoziție sau titlu..." style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(6,95,70,.06)" />
         <button class="btn blue" id="gen">Generează</button>
         <button class="btn green" id="analyze">Analizează</button>
       </div>
@@ -112,6 +156,19 @@
         <div id="analysis-output" class="small" style="margin-top:8px"></div>
       </div>
     </section>
+      <!-- Secțiune: Sfaturi rapide anti‑fake pentru copii -->
+    <section class="card" id="sfaturi">
+      <div class="section-title"><span class="pill">🛡️</span><h3 style="margin:0">Scutul adevărului — 5 reguli rapide</h3></div>
+      <ol class="small" style="margin-left:18px">
+        <li><strong>Verifică sursa</strong>: cine a scris? există date de contact? e o instituție reală?</li>
+        <li><strong>Nu te lăsa păcălit de titluri „WOW”</strong>: dacă sună prea tare ca să fie adevărat, verifică și alte site‑uri.</li>
+        <li><strong>Verifică imaginea</strong>: caută aceeași poză pe internet (căutare inversă), uită‑te la umbre și margini.</li>
+        <li><strong>Separă faptele de opinii</strong>: ce se poate dovedi? ce este doar părere?</li>
+        <li><strong>Întreabă un adult</strong>: dacă o postare te sperie sau te enervează, nu distribui. Cere sfat.</li>
+      </ol>
+    </section>
+
+    <!-- Tool intern: deja prezent -->
   </main>
 
   <footer>
@@ -119,19 +176,182 @@
   </footer>
 
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // year
-    const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear();
+    // Rulează JS doar după ce DOM-ul e gata
+    document.addEventListener('DOMContentLoaded', () => {
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Utility
-    const qs = (sel) => document.querySelector(sel);
-    const qsa = (sel) => Array.from(document.querySelectorAll(sel));
-    const shuffle = (a) => a.sort(() => Math.random() - 0.5);
+    // ===== GAME 1: Spot the Fake Headline =====
+    const g1Data = [
+      [
+        { t: 'Profesorii primesc salarii de 10.000€!', fake: true },
+        { t: 'Elevii plantează 200 de copaci în curtea școlii', fake: false },
+        { t: 'Echipa robotică a câștigat etapa regională', fake: false }
+      ],
+      [
+        { t: 'Telefonul citește gânduri dacă îl încarci noaptea!', fake: true },
+        { t: 'Biblioteca oferă abonamente gratuite elevilor', fake: false },
+        { t: 'Observatorul anunță ploaie de meteori în weekend', fake: false }
+      ],
+      [
+        { t: 'Apă care vindecă orice boală – disponibilă la chioșc', fake: true },
+        { t: 'Școala organizează concurs județean de lectură', fake: false },
+        { t: 'Liceenii lansează un podcast despre învățare', fake: false }
+      ]
+    ];
+    const g1El = document.getElementById('g1');
+    const g1ScoreEl = document.getElementById('g1-score');
+    const g1Next = document.getElementById('g1-next');
+    let g1Round = 0, g1Score = 0, g1Locked = false;
+    function shuffle(a){ return a.sort(()=>Math.random()-.5); }
+    function renderG1(){
+      g1Locked = false;
+      g1El.innerHTML = '';
+      const set = g1Data[g1Round].slice();
+      shuffle(set).forEach(item=>{
+        const d = document.createElement('div');
+        d.className = 'choice';
+        d.textContent = item.t;
+        d.addEventListener('click', ()=>{
+          if (g1Locked) return; g1Locked = true;
+          const correct = !!item.fake;
+          d.style.border = '3px solid ' + (correct ? '#16a34a' : '#ef4444');
+          if (correct){ g1Score++; g1ScoreEl.textContent = g1Score; confetti(d); }
+        });
+        g1El.appendChild(d);
+      });
+    }
+    g1Next.addEventListener('click', ()=>{ g1Round = (g1Round+1)%g1Data.length; renderG1(); });
+    renderG1();
 
-    // Confetti
+    // ===== GAME 2: Fact vs Opinion (Drag & Drop) =====
+    const pool = document.getElementById('pool');
+    const colFact = document.getElementById('col-fact');
+    const colOp = document.getElementById('col-op');
+    const items2 = [
+      'Apa îngheață la 0°C.',
+      'România este în Europa.',
+      'Apa este H2O.',
+      'TikTok este cea mai distractivă aplicație.',
+      'Cățelușii sunt mai drăguți decât pisicile.',
+      'Toți influencerii spun adevărul.'
+    ];
+    function buildChip(text){
+      const el = document.createElement('div');
+      el.className = 'choice';
+      el.textContent = text;
+      el.draggable = true;
+      el.addEventListener('dragstart', ()=> el.classList.add('dragging'));
+      el.addEventListener('dragend', ()=> el.classList.remove('dragging'));
+      return el;
+    }
+    function initPool(){ pool.innerHTML=''; items2.forEach(t=> pool.appendChild(buildChip(t))); }
+    [pool, colFact, colOp].forEach(zone=>{
+      zone.addEventListener('dragover', e=> e.preventDefault());
+      zone.addEventListener('drop', ()=>{
+        const chip = document.querySelector('.dragging');
+        if (chip) zone.appendChild(chip);
+      });
+    });
+    initPool();
+    document.getElementById('check2').addEventListener('click', ()=>{
+      const factsText = ['Apa îngheață la 0°C.','România este în Europa.','Apa este H2O.'];
+      const chosenFacts = [...colFact.querySelectorAll('.choice')].map(n=>n.textContent);
+      let points = 0; factsText.forEach(f=>{ if (chosenFacts.includes(f)) points++; });
+      document.getElementById('result2').textContent = `Puncte: ${points} / 3`;
+    });
+
+    // ===== GAME 3: Source Detective =====
+    const sData = [
+      { t:'Site oficial al Ministerului Educației', type:'Sigură' },
+      { t:'Blog anonim: „Adevărul ascuns”', type:'Falsă' },
+      { t:'Pagină socială fără autor clar', type:'Incertă' }
+    ];
+    const g3 = document.getElementById('g3');
+    const g3ScoreEl = document.getElementById('g3-score');
+    let g3Score = 0;
+    function renderG3(){
+      g3.innerHTML='';
+      sData.forEach(row=>{
+        const wrap = document.createElement('div');
+        wrap.className = 'choice';
+        const t = document.createElement('div'); t.textContent = row.t; wrap.appendChild(t);
+        const btns = document.createElement('div'); btns.style.display='flex'; btns.style.gap='8px'; btns.style.marginTop='8px';
+        ['Sigură','Incertă','Falsă'].forEach(opt=>{
+          const b = document.createElement('button'); b.className='btn blue'; b.style.padding='8px 12px'; b.textContent=opt;
+          b.addEventListener('click', ()=>{
+            if (opt === row.type){ g3Score++; b.style.background = '#16a34a'; }
+            else { b.style.background = '#ef4444'; }
+            g3ScoreEl.textContent = 'Scor: ' + g3Score;
+          });
+          btns.appendChild(b);
+        });
+        wrap.appendChild(btns); g3.appendChild(wrap);
+      });
+    }
+    renderG3();
+
+    // ===== GAME 4: Image Detective =====
+    const imgrow = document.getElementById('imgrow');
+    const imgs = [
+      { src:'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=700&q=60', fake:false },
+      { src:'https://images.unsplash.com/photo-1503264116251-35a269479413?w=700&q=60', fake:true }
+    ];
+    imgs.forEach(im=>{
+      const el = document.createElement('img');
+      el.src = im.src; el.alt = 'imagine'; el.dataset.fake = im.fake;
+      el.addEventListener('click', ()=> el.classList.toggle('selected'));
+      imgrow.appendChild(el);
+    });
+    document.getElementById('img-check').addEventListener('click', ()=>{
+      const selected = [...imgrow.querySelectorAll('img')].map(i=> i.classList.contains('selected'));
+      // Scor: considerăm corect dacă selectezi doar imaginile "fake"
+      let pts = 0; [...imgrow.querySelectorAll('img')].forEach(img=>{
+        const sel = img.classList.contains('selected');
+        const isFake = img.dataset.fake === 'true';
+        if ((sel && isFake) || (!sel && !isFake)) pts++;
+      });
+      document.getElementById('img-res').textContent = `Puncte: ${pts} / ${imgs.length}`;
+    });
+
+    // ===== TOOL: Generator & Analyzer =====
+    const genBtn = document.getElementById('gen');
+    const anBtn = document.getElementById('analyze');
+    const gInput = document.getElementById('ginput');
+    const genOut = document.getElementById('gen-output');
+    const aOut = document.getElementById('analysis-output');
+
+    function simpleGenerate(txt){
+      const seeds = ['Uimitor!','Șocant:','Top secret:','Atenție!','Descoperire:'];
+      return seeds[Math.floor(Math.random()*seeds.length)] + ' ' + txt + ' — Află mai mult!';
+    }
+    genBtn.addEventListener('click', ()=>{
+      const txt = gInput.value.trim() || 'O noutate despre tehnologie';
+      genOut.textContent = simpleGenerate(txt);
+    });
+
+    function analyzeHeadline(t){
+      const checks = [];
+      const low = t.toLowerCase();
+      const sensational = ['uimitor','șocant','secret','dezvăluit','miracol','incredibil'];
+      sensational.forEach(w=>{ if (low.includes(w)) checks.push('Cuvânt senzațional: "'+w+'"'); });
+      if ((t.match(/[!?]{2,}/g) || []).length > 0) checks.push('Prea multe semne de exclamare');
+      if (!/(minister|site|presă|publicat|ministerul|autor)/i.test(low) && t.length < 60) checks.push('Titlu scurt fără indiciu/sursă');
+      const score = Math.max(10, 100 - checks.length*25);
+      return { score, notes: checks.length? checks : ['Titlu pare rezonabil'] };
+    }
+    anBtn.addEventListener('click', ()=>{
+      const text = (gInput.value.trim() || genOut.textContent || '').trim();
+      if (!text){ aOut.textContent = 'Scrie un text sau generează un titlu.'; return; }
+      const res = analyzeHeadline(text);
+      aOut.innerHTML = 'Scor de risc: <strong>'+res.score+'</strong>' + res.notes.map(n=>'
+<div>• '+n+'</div>').join('');
+    });
+
+    // ===== Small confetti effect =====
     function confetti(target){
       const rect = target.getBoundingClientRect();
-      for (let i=0;i<14;i++){
+      for (let i=0;i<16;i++){
         const s=document.createElement('span');
         s.style.position='fixed'; s.style.left=(rect.left+rect.width/2)+'px'; s.style.top=(rect.top)+'px';
         s.style.width=s.style.height=(6+Math.random()*6)+'px';
@@ -142,125 +362,8 @@
         s.animate([{transform:'translate(0,0) rotate(0deg)',opacity:1},{transform:'translate('+dx+'px,'+dy+'px) rotate('+rot+'deg)',opacity:0}],{duration:1000+Math.random()*600,easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish=()=>s.remove();
       }
     }
-
-    /* ===================== GAME 1 ===================== */
-    const g1El = qs('#g1'), g1Next = qs('#g1-next'), g1ScoreEl = qs('#g1-score');
-    if (g1El && g1Next && g1ScoreEl){
-      const g1Data = [
-        [{t:'Profesorii primesc salarii de 10.000€!', fake:true},{t:'Elevii plantează 200 de copaci în curtea școlii', fake:false},{t:'Echipa robotică a câștigat etapa regională', fake:false}],
-        [{t:'Telefonul citește gânduri dacă îl încarci noaptea!', fake:true},{t:'Biblioteca oferă abonamente gratuite elevilor', fake:false},{t:'Observatorul anunță ploaie de meteori în weekend', fake:false}],
-        [{t:'Apă care vindecă orice boală – disponibilă la chioșc', fake:true},{t:'Școala organizează concurs județean de lectură', fake:false},{t:'Liceenii lansează un podcast despre învățare', fake:false}]
-      ];
-      let round=0, score=0, locked=false;
-      function render(){
-        locked=false; g1El.innerHTML='';
-        const set = g1Data[round].slice(); shuffle(set).forEach(item=>{
-          const d=document.createElement('div');
-          d.className='choice'; d.textContent=item.t;
-          d.addEventListener('click', ()=>{
-            if (locked) return; locked=true;
-            const ok = !!item.fake;
-            d.style.border = '3px solid ' + (ok ? '#16a34a' : '#ef4444');
-            if (ok){ score++; g1ScoreEl.textContent = String(score); confetti(d); }
-          });
-          g1El.appendChild(d);
-        });
-      }
-      g1Next.addEventListener('click', ()=>{ round=(round+1)%g1Data.length; render(); });
-      render();
-    }
-
-    /* ===================== GAME 2 ===================== */
-    const pool = qs('#pool'), colFact = qs('#col-fact'), colOp = qs('#col-op'), check2 = qs('#check2'), result2 = qs('#result2');
-    if (pool && colFact && colOp && check2 && result2){
-      const items = ['Apa îngheață la 0°C.','România este în Europa.','Apa este H2O.','TikTok este cea mai distractivă aplicație.','Cățelușii sunt mai drăguți decât pisicile.','Toți influencerii spun adevărul.'];
-      function chip(t){ const el=document.createElement('div'); el.className='choice'; el.textContent=t; el.draggable=true;
-        el.addEventListener('dragstart',()=>el.classList.add('dragging'));
-        el.addEventListener('dragend',()=>el.classList.remove('dragging'));
-        return el; }
-      function init(){ pool.innerHTML=''; items.forEach(t=> pool.appendChild(chip(t))); }
-      [pool,colFact,colOp].forEach(z=>{
-        z.addEventListener('dragover', e=> e.preventDefault());
-        z.addEventListener('drop', ()=>{
-          const c=document.querySelector('.dragging'); if (c) z.appendChild(c);
-        });
-      });
-      init();
-      check2.addEventListener('click', ()=>{
-        const factsShould=['Apa îngheață la 0°C.','România este în Europa.','Apa este H2O.'];
-        const chosenFacts = Array.from(colFact.querySelectorAll('.choice')).map(n=>n.textContent);
-        const points = factsShould.reduce((acc,f)=> acc + (chosenFacts.includes(f)?1:0), 0);
-        result2.textContent = `Puncte: ${points} / 3`;
-      });
-    }
-
-    /* ===================== GAME 3 ===================== */
-    const g3 = qs('#g3'), g3ScoreEl = qs('#g3-score');
-    if (g3 && g3ScoreEl){
-      const data=[{t:'Site oficial al Ministerului Educației',type:'Sigură'},{t:'Blog anonim: „Adevărul ascuns”',type:'Falsă'},{t:'Pagină socială fără autor clar',type:'Incertă'}];
-      let score=0;
-      g3.innerHTML='';
-      data.forEach(row=>{
-        const wrap=document.createElement('div'); wrap.className='choice';
-        const t=document.createElement('div'); t.textContent=row.t; wrap.appendChild(t);
-        const btns=document.createElement('div'); btns.style.display='flex'; btns.style.gap='8px'; btns.style.marginTop='8px';
-        ['Sigură','Incertă','Falsă'].forEach(opt=>{
-          const b=document.createElement('button'); b.className='btn blue'; b.style.padding='8px 12px'; b.textContent=opt;
-          b.addEventListener('click', ()=>{
-            if (opt===row.type){ score++; b.style.background='#16a34a'; }
-            else { b.style.background='#ef4444'; }
-            g3ScoreEl.textContent = String(score);
-          });
-          btns.appendChild(b);
-        });
-        wrap.appendChild(btns); g3.appendChild(wrap);
-      });
-    }
-
-    /* ===================== GAME 4 ===================== */
-    const imgrow = qs('#imgrow'), imgCheck = qs('#img-check'), imgRes = qs('#img-res');
-    if (imgrow && imgCheck && imgRes){
-      const images=[{src:'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=700&q=60', fake:false},{src:'https://images.unsplash.com/photo-1503264116251-35a269479413?w=700&q=60', fake:true}];
-      images.forEach(im=>{
-        const el=document.createElement('img'); el.src=im.src; el.alt='imagine'; el.dataset.fake=im.fake;
-        el.addEventListener('click', ()=> el.classList.toggle('selected'));
-        imgrow.appendChild(el);
-      });
-      imgCheck.addEventListener('click', ()=>{
-        let pts=0; qsa('#imgrow img').forEach(img=>{
-          const sel=img.classList.contains('selected');
-          const isFake=String(img.dataset.fake)==='true';
-          if ((sel && isFake) || (!sel && !isFake)) pts++;
-        });
-        imgRes.textContent = `Puncte: ${pts} / ${qsa('#imgrow img').length}`;
-      });
-    }
-
-    /* ===================== TOOL ===================== */
-    const gen = qs('#gen'), analyze = qs('#analyze'), ginput = qs('#ginput'), genOut = qs('#gen-output'), aOut = qs('#analysis-output');
-    if (gen && analyze && ginput && genOut && aOut){
-      const seeds=['Uimitor!','Șocant:','Top secret:','Atenție!','Descoperire:'];
-      const simpleGenerate = (txt)=> seeds[Math.floor(Math.random()*seeds.length)] + ' ' + txt + ' — Află mai mult!';
-      gen.addEventListener('click', ()=>{
-        const txt = (ginput.value||'O noutate despre tehnologie').trim();
-        genOut.textContent = simpleGenerate(txt);
-      });
-      function analyzeHeadline(t){
-        const checks=[]; const low=t.toLowerCase();
-        ['uimitor','șocant','secret','dezvăluit','miracol','incredibil'].forEach(w=>{ if(low.includes(w)) checks.push('Cuvânt senzațional: „'+w+'”'); });
-        if ((t.match(/[!?]{2,}/g)||[]).length>0) checks.push('Prea multe semne de exclamare');
-        if (!/\b(minister|site|presă|publicat|ministerul|autor)\b/i.test(low) && t.length<60) checks.push('Titlu scurt fără indiciu/sursă');
-        const score=Math.max(10,100-checks.length*25);
-        return {score,notes:checks.length?checks:['Titlu pare rezonabil']};
-      }
-      analyze.addEventListener('click', ()=>{
-        const text=(ginput.value||genOut.textContent||'').trim();
-        if(!text){ aOut.textContent='Scrie un text sau generează un titlu.'; return; }
-        const r=analyzeHeadline(text);
-        aOut.innerHTML = 'Scor de risc: <strong>'+r.score+'</strong>' + r.notes.map(n=>'<div>• '+n+'</div>').join('');
-      });
-    }
-  });
+        // end DOMContentLoaded
+    });
   </script>
 </body>
 </html>
