@@ -77,6 +77,12 @@
     /* butoane full-width in carduri si jocuri */
     .card .btn{width:100%}
   }
+
+/* AI Detector: 2 coloane pe ecrane ≥740px */
+@media (min-width:740px){
+  #ai-grid{grid-template-columns:1.2fr .8fr}
+}
+
 </style>
 </head>
 <body>
@@ -232,7 +238,41 @@
         <div id="analysis-output" class="small" style="margin-top:8px"></div>
       </div>
     </section>
-  </main>
+  
+    <!-- Detector educațional de imagini AI (on-device) -->
+    <section id="ai-detector" class="card" style="scroll-margin-top:80px">
+      <div class="section-title">
+        <span class="pill">🧪</span><h3 style="margin:0">Detector educațional de imagini AI</h3>
+      </div>
+      <p class="small">
+        Încarcă o imagine și vei primi un <strong>scor educațional</strong> bazat pe indicii: EXIF, netezime, halouri/contururi.
+        Rezultatul nu e probă legală; e un instrument de învățare.
+      </p>
+      <div class="card" style="background:#f6fffa">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+          <input id="ai-file" type="file" accept="image/*"
+                 style="flex:1;min-width:220px;padding:10px;border:1px solid rgba(6,95,70,.12);border-radius:10px;background:#fff" />
+          <button class="btn green" id="ai-run">Analizează imaginea</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px" id="ai-grid">
+          <canvas id="ai-canvas" style="width:100%;max-width:100%;background:#fff;border:1px dashed rgba(6,95,70,.18);border-radius:10px"></canvas>
+          <div class="card small" id="ai-report" style="background:#fffdf7">
+            Încarcă o imagine și apasă <strong>Analizează</strong>.
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;background:#fff8f2">
+        <h4 style="margin:0 0 6px">Rol și obiective</h4>
+        <ul class="small" style="margin:0 0 0 18px">
+          <li><strong>Rol:</strong> observăm indicii vizuale și verificăm sursele.</li>
+          <li><strong>Obiectiv 1:</strong> ce sunt metadatele EXIF și de ce pot lipsi.</li>
+          <li><strong>Obiectiv 2:</strong> identificăm netezime/halouri/contururi suspecte.</li>
+          <li><strong>Obiectiv 3:</strong> pași practici: căutare inversă, sursă, context.</li>
+        </ul>
+      </div>
+    </section>
+
+</main>
 
   <footer>
     <div class="container"><small>© <span id="year"></span> Vânătorii de Știri False • #SuperCoders2025</small></div>
@@ -468,6 +508,145 @@
     if(document.readyState==='complete'||document.readyState==='interactive'){ setTimeout(boot,0); }
     else { document.addEventListener('DOMContentLoaded', boot); }
   })();
-  </script>
+  
+// ===== AI IMAGE DETECTOR (educational, on-device) =====
+(function(){
+  const fi = document.querySelector('#ai-file');
+  const run = document.querySelector('#ai-run');
+  const cvs = document.querySelector('#ai-canvas');
+  const rep = document.querySelector('#ai-report');
+  if(!fi || !run || !cvs || !rep) return;
+
+  const ctx = cvs.getContext('2d');
+
+  async function hasEXIF(file){
+    try{
+      const buf = await file.slice(0, 64*1024).arrayBuffer();
+      const view = new DataView(buf);
+      if(view.getUint16(0) != 0xFFD8) return false; // JPEG SOI
+      for(let i=2;i<view.byteLength-1;i++){
+        if(view.getUint16(i) === 0xFFE1) return true; // APP1 EXIF
+      }
+      return false;
+    }catch{ return false; }
+  }
+
+  function edgeVariance(imageData){
+    const {data, width, height} = imageData;
+    const k = [0,1,0,1,-4,1,0,1,0]; // Laplacian simplu
+    const out = new Float32Array(width*height);
+    const get=(x,y)=>{
+      const i=(y*width+x)*4;
+      return 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+    };
+    for(let y=1;y<height-1;y++){
+      for(let x=1;x<width-1;x++){
+        let acc=0, t=0;
+        for(let ky=-1; ky<=1; ky++){
+          for(let kx=-1; kx<=1; kx++){
+            acc += get(x+kx, y+ky) * k[++t-1];
+          }
+        }
+        out[y*width+x]=acc;
+      }
+    }
+    let sum=0,sum2=0,n=out.length;
+    for(let i=0;i<n;i++){ const v=out[i]; sum+=v; sum2+=v*v; }
+    const mean=sum/n;
+    return (sum2/n) - (mean*mean);
+  }
+
+  function haloScore(imageData){
+    const {data, width, height} = imageData;
+    const blur = new Uint8ClampedArray(data.length);
+    const get=(x,y,c)=> data[(y*width+x)*4 + c];
+    const set=(arr,x,y,c,val)=> arr[(y*width+x)*4 + c] = val;
+    for(let y=1;y<height-1;y++){
+      for(let x=1;x<width-1;x++){
+        for(let c=0;c<3;c++){
+          let s=0;
+          for(let ky=-1; ky<=1; ky++){
+            for(let kx=-1; kx<=1; kx++){
+              s += get(x+kx, y+ky, c);
+            }
+          }
+          set(blur,x,y,c, Math.round(s/9));
+        }
+        set(blur,x,y,3,255);
+      }
+    }
+    let diff=0,count=0;
+    for(let i=0;i<data.length;i+=4){
+      const lum = 0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
+      const bl  = 0.299*blur[i]+0.587*blur[i+1]+0.114*blur[i+2];
+      diff += Math.abs(lum - bl);
+      count++;
+    }
+    return diff / count;
+  }
+
+  async function analyze(){
+    const file = fi.files && fi.files[0];
+    if(!file){ rep.innerHTML='Te rog alege o imagine.'; return; }
+
+    const img = new Image();
+    img.onload = async ()=>{
+      const maxSide = 768;
+      let w=img.naturalWidth, h=img.naturalHeight;
+      const scale = Math.min(1, maxSide/Math.max(w,h));
+      w = Math.max(1, Math.round(w*scale));
+      h = Math.max(1, Math.round(h*scale));
+      cvs.width=w; cvs.height=h;
+      ctx.drawImage(img,0,0,w,h);
+      const id = ctx.getImageData(0,0,w,h);
+
+      const exif = await hasEXIF(file);
+      const ev   = edgeVariance(id);
+      const halo = haloScore(id);
+      const smoothness = 1/(1+ev);
+
+      let scoreAI = 0;
+      if(!exif) scoreAI += 35;
+      const smoothPct = Math.min(40, Math.max(0, (smoothness*100)) );
+      const haloPct   = Math.min(25, Math.max(0, (halo/20)) );
+      scoreAI = Math.max(0, Math.min(100, Math.round(scoreAI + smoothPct + haloPct)));
+
+      const badges = [
+        exif ? '📎 EXIF: prezent (posibil original sau foto editată)'
+             : '📎 EXIF: lipsă (posibil export/app, uneori AI)',
+        `🧱 Muchii/Asprime: ${ev.toFixed(1)} (mai mic ≈ mai neted)`,
+        `✨ Halouri/Contururi: ${halo.toFixed(1)} (mai mare ≈ potențiale artefacte)`
+      ];
+
+      let verdict = (scoreAI>=70)
+        ? '⚠️ Mare probabilitate educațională de generare AI. Verifică sursa!'
+        : (scoreAI>=40)
+          ? 'ℹ️ Indicii mixte. Continuă cu verificări suplimentare (căutare inversă).'
+          : '✅ Puține indicii de generare AI. Totuși, verifică sursa pentru siguranță.';
+
+      rep.innerHTML = `
+        <div class="small">
+          <div style="font-weight:900;margin-bottom:6px">Scor educațional AI: <span style="font-size:18px">${scoreAI}/100</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">
+            ${badges.map(b=>`<div>• ${b}</div>`).join('')}
+          </div>
+          <div class="card" style="background:#f9fffb;margin-bottom:8px">${verdict}</div>
+          <div><strong>Pași recomandați:</strong>
+            <ul style="margin:6px 0 0 18px">
+              <li>Fă <em>căutare inversă</em> a imaginii.</li>
+              <li>Caută <em>sursa originală</em> și <em>contextul</em>.</li>
+              <li>Verifică <em>mâinile, textul mic, bijuteriile</em>.</li>
+            </ul>
+          </div>
+        </div>`;
+    };
+    img.onerror = ()=>{ rep.textContent='Nu am putut încărca imaginea.'; };
+    img.src = URL.createObjectURL(file);
+  }
+
+  run.addEventListener('click', analyze);
+})();
+
+</script>
 </body>
 </html>
